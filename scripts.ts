@@ -1,19 +1,20 @@
 import { PrismaClient } from '@prisma/client'
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient()
 
 async function main() {
   const user = await prisma.user.create({
     data: {
-      uid: Buffer.from('a1d109c290d0fb1ca068ffaddf33abc1', 'hex'),
-      username: 'john_doe',
-      password: '$2b$12$anothersecurepasswordhashvalue',
-      email: 'john.doe@example.com',
+      uid: Buffer.from('a1d109c290d0fb1ca068ffaddf33abc6', 'hex'),
+      username: 'hmd686',
+      password: await bcrypt.hash('hmd686', await bcrypt.genSalt(10)),
+      email: 'hmd686@behmd.com',
       phone: '0987654321',
-      type: 'internal', 
+      type: 'internal',
       loginAttempts: 1,
       isBlockedByTenantOwner: false,
-      isBannedBySystem: true,
+      isBannedBySystem: false,
       emailVerified: true,
       phoneVerified: true,
       passwordUpdatedAt: new Date('2025-01-15T10:30:00Z'),
@@ -21,7 +22,7 @@ async function main() {
       updatedAt: new Date('2025-01-20T14:45:00Z'),
       createdBy: Buffer.from('d41d8cd98f00b204e9800998ecf8427f', 'hex'),
       updatedBy: Buffer.from('e41d8cd98f00b204e9800998ecf8427f', 'hex'),
-      deletedAt: null, 
+      deletedAt: null,
     },
   })
   console.log('New user created:', user)
