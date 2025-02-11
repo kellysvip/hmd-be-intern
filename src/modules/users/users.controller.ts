@@ -1,17 +1,13 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Param, Delete } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
+import { SwaggerTags } from '../../common/constants/enums/swagger-tags.enum';
 
 @Controller('users')
-@ApiTags('USERS')
+@ApiTags(SwaggerTags.USERS)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
   getListOfUsers() {
