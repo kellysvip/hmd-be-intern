@@ -1,4 +1,13 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UsePipes } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UsePipes,
+  HttpException,
+  Req,
+} from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
@@ -11,12 +20,17 @@ import { SwaggerTags } from '../../common/constants/enums/swagger-tags.enum';
 @ApiTags(SwaggerTags.AUTH)
 @UsePipes(validationPipe())
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-    @Post('signin')
-    @ApiBody(loginBodySchema)
-    @HttpCode(HttpStatus.OK)
-    login(@Body() dto: AuthDto) {
-        return this.authService.login(dto);
-    }
+  @Post('login')
+  @ApiBody(loginBodySchema)
+  @HttpCode(HttpStatus.OK)
+    async login(@Req() req: Request, @Body() dto: AuthDto) {
+      const deviceId = req.headers['deviceid'];
+      
+      if (!deviceId) {
+        throw new HttpException('deviceId header is required', HttpStatus.BAD_REQUEST);
+      }
+    return this.authService.login(deviceId, dto);
+  }
 }

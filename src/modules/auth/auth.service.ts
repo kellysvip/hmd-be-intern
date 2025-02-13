@@ -6,6 +6,7 @@ import { config } from '../../config';
 import { AuthDto } from './dto/auth.dto';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { JwtPayload } from '../../common/constants/types/jwt-payload.type';
+import { getCurrentDate } from '../../helpers';
 
 @Injectable({})
 export class AuthService {
@@ -17,13 +18,14 @@ export class AuthService {
     /**
      * Verify if user is logged in
      * Return the jwt token if yes
-     *
+     * 
+     * @param {number} deviceId - device id of user
      * @param {string} username - username of user
      * @param {string} password - password
      *
      * @return {Promise<object>} the object contains jwt token
      */
-    async login(dto: AuthDto) {
+    async login(deviceId, dto: AuthDto) {
         const user = await this.prisma.user.findUnique({
             where: {
                 username: dto.username,
@@ -39,7 +41,7 @@ export class AuthService {
                 where: { id: user.id },
                 data: {
                     isBannedBySystem: true,
-                    updatedAt: new Date(),
+                    updatedAt: getCurrentDate(),
                     updatedBy: Buffer.from('system'),
                 },
             });
@@ -69,6 +71,24 @@ export class AuthService {
             throw new ForbiddenException('Account has been banned by system');
         }
 
+        const overdueInvoices = await this.prisma.paymentInvoice.findMany({
+            where: {
+                status: 'waiting',
+                mustPayDate: {
+                    lt: getCurrentDate(),
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!!overdueInvoices.length) {
+            throw new ForbiddenException(
+                'Your account is locked due to overdue invoice',
+            );
+        }
+
         const pwMatches = await this.verifyPassword(dto.password, user.password);
         if (!pwMatches) {
             await this.prisma.user.update({
@@ -77,7 +97,7 @@ export class AuthService {
                     loginAttempts: {
                         increment: 1,
                     },
-                    updatedAt: new Date(),
+                    updatedAt: getCurrentDate(),
                     updatedBy: Buffer.from('system'),
                 },
             });
@@ -89,9 +109,20 @@ export class AuthService {
             where: { id: user.id },
             data: {
                 loginAttempts: 0,
-                updatedAt: new Date(),
+                updatedAt: getCurrentDate(),
                 updatedBy: Buffer.from('system'),
             },
+        });
+
+        await this.prisma.userLoggedDevice.create({
+            data: {
+                userId: user.id,
+                deviceId,
+                createdAt: getCurrentDate(),
+                updatedAt: getCurrentDate(),
+                createdBy: Buffer.from('system'),
+                updatedBy: Buffer.from('system'),
+            }
         });
 
         return this.signToken(user.id, user.username);

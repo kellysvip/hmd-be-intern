@@ -27,4 +27,4 @@ import { config } from './config';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
