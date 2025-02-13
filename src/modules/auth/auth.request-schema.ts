@@ -13,7 +13,7 @@ export const loginBodySchema: ApiBodyOptions = {
         type: 'string',
         description: 'Password of the user',
         example: 'securePassword123',
-      }
+      },
     },
   },
 };

@@ -25,12 +25,9 @@ export class AuthController {
   @Post('login')
   @ApiBody(loginBodySchema)
   @HttpCode(HttpStatus.OK)
-    async login(@Req() req: Request, @Body() dto: AuthDto) {
-      const deviceId = req.headers['deviceid'];
-      
-      if (!deviceId) {
-        throw new HttpException('deviceId header is required', HttpStatus.BAD_REQUEST);
-      }
+  async login(@Req() req: Request, @Body() dto: AuthDto) {
+    const deviceId = req.headers['deviceid'];
+
     return this.authService.login(deviceId, dto);
   }
 }
